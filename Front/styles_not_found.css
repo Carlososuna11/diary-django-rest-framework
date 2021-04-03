@@ -1,0 +1,39 @@
+.error{
+    font-family: "montserrat",sans-serif;
+    position:absolute;
+    top: 50%;
+    margin: auto;
+    transform: translateY(-50%);
+    text-align: center;
+    color: #fff;
+    z-index: 100;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+   
+}
+
+.error h1{
+    font-size: 160px;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: 20px;
+    background: url(img/default.jpg) center no-repeat;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+.error a{
+    text-decoration: none;
+    background: #3249a3;
+    color: #fff;
+    padding: 12px 24px;
+    display: inline-block;
+    border-radius: 25px;
+    text-transform: uppercase;
+    transition: 0.4s;
+}
+
+.error a:hover{
+    background: #e55039;
+}

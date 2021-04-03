@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+    <title>Actualizar Entrada</title>
+    <link rel="stylesheet" href="styles_common.css">
+    <link rel="stylesheet" href="styles_form.css">
+</head>
+<body>
+    <a href="index.html" id="home">
+        <h1 id="page-title"> My <span class="background">Diary</span><span class="pencil">✏️</span></h1>
+    </a>
+    <div class="container">
+        <ul class="cuadrados">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+    <div class="entry-container">
+            <form id="form" onsubmit="post_js(this);"  enctype="multipart/form-data">
+            <input type="hidden" name="csrfmiddlewaretoken" id="csrftoken">
+            <div class="txtb">
+                <label>Título :</label>
+                <input type="text" name="title" id="title" value="" maxlength="50" placeholder="Por Favor introduce el Titulo" required>
+            </div>
+            <div class="txtb">
+                <label>Fecha :</label>
+                <input id="creation_date" type="date" value="" name="creation_date" required>
+            </div>
+            <div class="txtb">
+                <label>Estado de Ánimo :</label>
+                <input type="text" id="feel" name="feel" value="" maxlength="20" placeholder="Por Favor introduce el Estado de animo" required>
+            </div>
+            <div class="txtb">
+                <label>descripcion :</label>
+                <textarea id="description" onkeyup="textAreaAdjust(this)" name="description" placeholder="Descripcion" value=""></textarea>
+            </div>
+            <div class="txtb">
+                <label>Imagen :</label>
+                <div id="upload" onclick=" trigger_click()">Subir Foto</div>
+                <input type="file" name="image" id="image" accept="image/*" onchange="on_upload(this);" value>
+                <span id="photo"></span>
+            </div>
+            <button type="submit" class="submit">Confirmar</button>
+        </form>
+    </div>
+</body>
+<script>
+    var state = 0;
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var queryString= window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    var csrftoken = getCookie('csrftoken');
+    document.getElementById("csrftoken").value = csrftoken;
+    var old_photo = null;
+    retrieve()
+    function retrieve(){
+        var url = `https://servidor-diario.herokuapp.com/api/update/${urlParams.get('id')}/`;
+        fetch(url)
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }else {
+            throw new Error(response.status);
+            }
+        })
+        .then(function(data){
+            for (elem in data){
+                if (elem != 'id' && elem !='image'){
+                    var element = document.getElementsByName(`${elem}`)[0];
+                    element.value = data[elem];
+                }
+            }
+            if (data.image!=null){
+                var photo = document.getElementById("photo");
+                var photo = document.getElementById("photo");
+                old_photo = data.image;
+                photo.innerHTML+='<img id="myimage">';
+                document.getElementById("myimage").setAttribute('src',data.image);
+                button_upload_change();
+            }
+            textAreaAdjust(document.getElementById("description"));
+        });
+    }
+
+    function trigger_click(){
+        var evObj = document.createEvent('MouseEvents');
+        evObj.initMouseEvent('click', true, true, window);  
+        setTimeout(function()
+        { 
+            document.getElementById('image').dispatchEvent(evObj);      
+        },100);
+    }
+
+
+    function button_upload_change(){
+        var button_upload = document.getElementById('upload');
+        var container = document.getElementsByClassName("entry-container")[0];
+        
+        if (state==0){
+            button_upload.textContent ="ELIMINAR FOTO";
+            button_upload.setAttribute("onclick","delete_upload()");
+            state=1;
+        }else{
+            button_upload.textContent = "SUBIR FOTO";
+            button_upload.setAttribute("onclick","trigger_click()");
+            old_photo = null;
+            state=0;
+       }
+    }
+    function on_upload(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            var photo = document.getElementById("photo");
+            photo.innerHTML+='<img id="myimage">';
+            reader.onload = function (e) {
+                document.getElementById("myimage").setAttribute('src',e.target.result);
+                // img_binary = reader.result;
+                button_upload_change();
+            };
+            reader.readAsDataURL(input.files[0]);
+            //delete
+        }
+    }
+
+    
+
+    function delete_upload(){
+        var img_input = document.getElementById("image");
+        img_input.value='';
+        var img = document.getElementById("myimage")
+        img.remove()
+        button_upload_change();
+    }
+
+    var form = document.getElementById("form");
+    function handleForm(event) { event.preventDefault(); } 
+    form.addEventListener('submit', handleForm);
+
+    function post_js(form){
+        var formData = new FormData(form);
+        if (old_photo != null){
+            formData.delete('image');
+        }
+        fetch(`https://servidor-diario.herokuapp.com/api/update/${urlParams.get('id')}/`,{
+            method:"PATCH",
+            contentType: false,
+            processData: false,
+            body:formData
+        }).then(function(response){
+            alert("Actualizado Exitosamente");
+            window.location.href='index.html';
+        })
+    }
+    
+    function textAreaAdjust(element) {
+        element.style.height = "1px";
+        element.style.height = (25+element.scrollHeight)+"px";
+    }
+
+</script>
+</html>

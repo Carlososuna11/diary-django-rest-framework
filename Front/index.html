@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+    <title>My Diary</title>
+    <link rel="stylesheet" href="styles_common.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <a href="index.html" id="home">
+        <h1 id="page-title"> My <span class="background">Diary</span><span class="pencil">✏️</span></h1>
+    </a>
+    <div class="container">
+        <ul class="cuadrados">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+    <div id="diary-container">
+        <!-- <div class="card" id="entry-row-1">
+            <div class="data-entry">
+                <label for="imgTap" class="img">
+                    <img class="img-1" src="default.jpg" width="260px">
+                </label>
+                <div class="content">
+                    <span class="date"></span>
+                    <div class="title">
+                    </div>
+                    <div class="feel">
+                    </div>
+                    <div class="text">
+                    </div>
+                    <button class="more">Ver Más</button>
+                    <span class="last_edited"></span>
+                </div>
+            </div>
+        </div> -->
+    </div>
+    <a href="create.html" class="floating-button">+</a>
+</body>
+<script>
+    get_list();
+    function get_list(){
+        var wrapper = document.getElementById("diary-container");
+        var url = "https://servidor-diario.herokuapp.com/api/diary-entries/";
+        fetch(url)
+        .then((resp) => resp.json())
+        .then(function(data){
+            var list = data;
+            for(var i in list){
+                try {
+                    document.getElementById(`entry-row-${i}`).remove();
+                } catch (error) {
+                    console.log("no existe dicho elemento");
+                }
+                var img = `src="${list[i].image}"`;
+                if (img=='src="null"'){
+                    img='';
+                }
+                var description = `${list[i].description}`;
+                
+                var item = `
+                    <div class="card" id="entry-row-${i}">
+                        <div class="data-entry">
+                            <label for="imgTap" class="img">
+                                <img class="img-1" ${img} width="260px">
+                            </label>
+                            <div class="content">
+                                <span class="date">${list[i].creation_date}</span>
+                                <div class="title">
+                                ${list[i].title}
+                                </div>
+                                <div class="feel">
+                                ${list[i].feel}
+                                </div>
+                                <div class="text">
+                                ${description}
+                                </div>
+                                <button class="more" onclick=retrieve(${list[i].id})>Ver Más</button>
+                                <span class="last_edited">${list[i].last_edited}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                wrapper.innerHTML += item;
+            }
+        });
+    }
+    
+    function retrieve(id){
+        window.location.href = `entry.html?id=${id}`;
+    }
+</script>
+</html>

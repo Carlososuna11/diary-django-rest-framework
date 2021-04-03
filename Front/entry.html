@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--RetrieveDestroy-->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles_common.css">
+    <link rel="stylesheet" href="styles_view.css">
+</head>
+<body>
+    <a href="index.html" id="home">
+        <h1 id="page-title"> My <span class="background">Diary</span><span class="pencil">✏️</span></h1>
+    </a>
+    <div class="container">
+        <ul class="cuadrados">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+    <div id="retrieve"></div>
+    <div id="box-container">
+    </div>
+    <div id="box">
+        <img src="img/info.png" alt="informacion">
+        <h3>¿Estas Seguro Que quieres Borrar esta entrada?</h3>
+        <button onclick="pop()" class="close">No, Regresar</button>
+        <button onclick="delete_entry()" class="process_delete">Si, Eliminar</button>
+    </div>
+
+
+</body>
+<script>
+    var c = 0;
+
+    function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = cookies[i].trim();
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+		}
+    var queryString= window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+	var csrftoken = getCookie('csrftoken');
+
+    retrieve();
+    function retrieve(){
+        var wrapper = document.getElementById("retrieve");
+        
+        var url = `https://servidor-diario.herokuapp.com/api/entry/${urlParams.get('id')}/`;
+        fetch(url)
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }else {
+            throw new Error(response.status);
+            }
+        })
+        .then(function(data){
+            document.title = data.title
+            var item = `
+            <div class="diary-container">
+                <div class="options">
+                    <button onclick=edit_entry(${data.id})>Editar <span class="edit">✏️</span></button>
+                    <button onclick=pop()>Eliminar <span class="delete">🗑️</span></button>
+                    <div class="last_edited">Última Vez Editado: ${data.last_edited}</div>
+                </div>
+                <div class="date">${data.creation_date}</div>
+                <h2 class="entry-title">${data.title}</h2>
+                <h3 class="feel">Estado de Ánimo: <span class="background">${data.feel}</span> </h3>
+                <hr>
+                <div class="text"><p>${data.description}</p></div>
+            `
+            var img = data.image
+            if (img != null){
+                item += `<img class="img" src="${img}">`;
+            }
+            item += '</div>'
+            wrapper.innerHTML += item;
+        })
+        .catch((err) => {
+            console.log(err.message);
+            if (err.message == '404'){
+                window.location.replace("not_found.html");
+            }
+
+        });
+        
+    }
+    function delete_entry(){
+        id = urlParams.get("id");
+        console.log(id);
+        var url = `https://servidor-diario.herokuapp.com/api/entry/${id}/`
+        var request = {
+            method:'DELETE', 
+			headers:{
+                'Content-type':'application/json',
+                'X-CSRFToken':csrftoken
+            }
+        }
+        fetch(url,request)
+        .then((response) => {
+            console.log(response);
+            if (response.ok) {
+                window.location.href = 'index.html';
+            }else {
+                throw new Error(response.status);
+            }
+        })
+        .catch((err) => {
+            console.log(err.message);
+            if (err.message == '404'){
+                window.location.replace("not_found.html");
+            }
+
+        });
+
+    }
+
+    function edit_entry(id){
+        window.location.href = `update.html?id=${id}`;
+    }
+
+    function pop(){
+        var element =document.getElementById('box-container');
+        var popup = document.getElementById('box');
+        if(c==0){
+            element.style.display= "block";
+            popup.style.display="block";
+            c=1;
+        }else{
+            element.style.display="none";
+            popup.style.display="none";
+            c=0;
+        }
+    }
+</script>
+</html>
