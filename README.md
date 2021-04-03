@@ -1,0 +1,1 @@
+# diary-django-rest-framework
